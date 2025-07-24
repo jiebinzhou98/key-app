@@ -4,22 +4,33 @@ import { NextResponse } from "next/server";
 const SPARE_USER_ID = 87;
 
 async function ensureSpareStockExists(key_id: number): Promise<void> {
-  const row = await new Promise<any>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     db.get(
       `SELECT 1 FROM assign_key WHERE user_id = ? AND key_id = ?`,
       [SPARE_USER_ID, key_id],
-      (err, row) => (err ? reject(err) : resolve(row))
+      (err, row) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        if (!row) {
+          db.run(
+            `INSERT INTO assign_key (user_id, key_id, quantity, keyholder, keyname) VALUES (?, ?, 0, 'Spare', 'Spare Key')`,
+            [SPARE_USER_ID, key_id],
+            (insertErr) => {
+              if (insertErr) {
+                reject(insertErr);
+                return;
+              }
+              resolve();
+            }
+          );
+        } else {
+          resolve();
+        }
+      }
     );
   });
-  if (!row) {
-    await new Promise<void>((resolve, reject) => {
-      db.run(
-        `INSERT INTO assign_key (user_id, key_id, quantity, keyholder, keyname) VALUES (?, ?, 0, 'Spare', 'Spare Key')`,
-        [SPARE_USER_ID, key_id],
-        (err) => (err ? reject(err) : resolve())
-      );
-    });
-  }
 }
 
 

@@ -69,6 +69,15 @@ export default function Assign() {
 
     const [showFilters, setShowFilters] = useState(false)
 
+    interface User{
+      id: number;
+      name: string;
+    }
+    interface Key{
+      id: number;
+      keyname: string;
+    }
+
     async function fecthData() {
         try {
             const token = localStorage.getItem('token');
@@ -87,8 +96,8 @@ export default function Assign() {
 
             setAssigns(mergedAssigns);
             setFilterAssign(mergedAssigns);
-            setUsers(userData.map((u: any) => ({ value: u.id, label: u.name })))
-            setKeys(keyData.map((k: any) => ({ value: k.id, label: k.keyname })))
+            setUsers(userData.map((u: User) => ({ value: u.id, label: u.name })))
+            setKeys(keyData.map((k: Key) => ({ value: k.id, label: k.keyname })))
             setLoading(false)
         } catch (error) {
             alert('Failed to fetch data, please login again')
@@ -128,9 +137,12 @@ export default function Assign() {
             fecthData();
             setShowForm(false);
             setFormData({ user_id: 0, key_id: 0, quantity: 1 })
-        } catch (err) {
-            alert('Create error: ' + err)
-        }
+        } catch (err: unknown) {
+  if (err instanceof Error) {
+    alert('Create error: ' + err.message);
+  } else {
+    alert('Create error: unknown error');
+  }        }
     }
 
     async function handleUpdate(id: number, updatedData: Partial<AssignItem>) {
@@ -144,7 +156,7 @@ export default function Assign() {
                 fecthData();
                 setShowForm(false);
                 setEditingId(null);
-                setFormData({ user_id: 0, key_id: 0, quantity: 1 })
+                setFormData({ user_id: null, key_id: null, quantity: 1 })
             } else {
                 alert('Update Failed')
             }

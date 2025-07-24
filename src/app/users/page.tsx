@@ -2,7 +2,6 @@
 
 import { useState, useEffect, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
 import { useAuthGuard } from '../hooks/useAuthGuard';
 import * as Dialog from '@radix-ui/react-dialog';
 
@@ -23,7 +22,6 @@ export default function Users() {
     const authChecked = useAuthGuard();
     const [users, setUsers] = useState<UserItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const router = useRouter();
     const [filterUser, setFilterUser] = useState<UserItem[]>([]);
     const [filters, setFilters] = useState({
         name: '',
