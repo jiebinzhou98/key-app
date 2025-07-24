@@ -1,7 +1,5 @@
 import db from "@/lib/db"
-import { error } from "console";
 import { NextResponse } from "next/server"
-import { resolve } from "path";
 
 const SPARE_USER_ID = 87;
 

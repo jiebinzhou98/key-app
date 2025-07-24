@@ -2,7 +2,6 @@
 
 import * as XLSX from 'xlsx'
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
 
 export default function ExportPage() {
 
