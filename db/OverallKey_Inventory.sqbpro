@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="OverallKey_Inventory.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="1611"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="assign_key" custom_title="0" dock_id="1" table="4,10:mainassign_key"/><dock_state state="000000ff00000000fd00000001000000020000043c000002b6fc0100000001fb000000160064006f0063006b00420072006f007700730065003101000000000000043c0000012400ffffff000002580000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="assign_key" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="31"/><column index="2" value="52"/><column index="3" value="47"/><column index="4" value="55"/><column index="5" value="171"/><column index="6" value="351"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="keys" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="31"/><column index="2" value="70"/><column index="3" value="62"/><column index="4" value="156"/><column index="5" value="300"/><column index="6" value="300"/><column index="7" value="46"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="overall_data" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort><column index="3" mode="1"/></sort><column_widths><column index="1" value="70"/><column index="2" value="62"/><column index="3" value="156"/><column index="4" value="162"/><column index="5" value="532"/><column index="6" value="46"/><column index="8" value="55"/><column index="9" value="171"/><column index="10" value="85"/><column index="11" value="179"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="sqlite_sequence" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="39"/><column index="2" value="29"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="users" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="56"/><column index="2" value="171"/><column index="3" value="85"/><column index="4" value="179"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1*">CREATE TABLE overall_data(
+	type TEXT,
+	zone TEXT,
+	usage TEXT,
+	keyname TEXT,
+	keydescription TEXT,
+	keytag TEXT,
+	total_no_of_key INTEGER,
+	quantity INTEGER,
+	keyholder TEXT,
+	division TEXT,
+	ministry TEXT
+);</sql><sql name="SQL 2*">INSERT INTO overall_data (type, zone, usage, keyname, keydescription, keytag, total_no_of_key, quantity, keyholder, division, ministry)
+SELECT Type, Zone, Usage, KeyName, KeyDescription, KeyTag, Total_No_Of_Key, quantity, KeyHolder, Division, Ministry
+FROM Overall;</sql><sql name="insert into users*">INSERT OR IGNORE INTO users (name, division, ministry)
+SELECT DISTINCT keyholder, division, ministry
+FROM overall_data
+WHERE keyholder Is NOT NULL AND trim(keyholder) &lt;&gt;''</sql><sql name="insert into keys*">INSERT INTO keys (type, zone, usage, keyname, keydescription, keytag, total_no_of_key)
+SELECT DISTINCT type, zone, usage, keyname, keydescription, keytag, total_no_of_key
+FROM overall_data
+WHERE keyname IS NOT NULL;</sql><sql name="insert into assign_key*">INSERT into assign_key (user_id, key_id, quantity)
+SELECT u.id, k.id, coalesce(o.quantity, 0)
+FROM overall_data o
+JOIN users u ON lower(trim(o.keyholder)) = lower(trim(u.name))
+JOIN keys k ON lower(trim(o.keyname)) = lower(trim(k.keyname))
+	AND( (o.zone = k.zone) OR (o.zone IS NULL AND k.zone IS NULL) )
+	AND lower(trim(o.keydescription)) = lower(trim(k.keydescription))
+WHERE o.quantity IS NOT NULL;</sql><sql name="SQL 3*">UPDATE assign_key
+SET keyholder = (SELECT name FROM users WHERE users.id = assign_key.user_id),
+	keyname = (SELECT keyname FROM keys WHERE keys.id = assign_key.key_id)</sql><sql name="SQL 7*">DELETE FROM assign_key;
+DELETE FROM users;
+DELETE FROM keys;</sql><sql name="SQL 8*">INSERT INTO assign_key (user_id, key_id, quantity)
+SELECT u.id, k.id, SUM(o.quantity) AS total_quantity
+FROM overall_data o
+JOIN users u ON lower(trim(o.keyholder)) = lower(trim(u.name))
+JOIN keys k ON lower(trim(o.keyname)) = lower(trim(k.keyname))
+	AND( (o.zone = k.zone) OR (o.zone IS NULL AND k.zone IS NULL) )
+	and lower(trim(o.keydescription)) = lower(trim(k.keydescription))
+WHERE o.quantity &gt; 0
+GROUP BY u.id, k.id;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_keys_unique ON keys(keyname, zone, keydescription);</sql><sql name="SQL 9*">SELECT o.keyholder, o.keyname, o.zone, o.keydescription, o.usage, u.id AS user_id, k.id AS key_id
+FROM overall_data o
+JOIN users u ON lower(trim(o.keyholder)) = lower(trim(u.name))
+JOIN keys k ON lower(trim(o.keyname)) = lower(trim(k.keyname))
+	AND( (o.keydescription = k.keydescription) )
+	AND( (o.usage = k.usage) )
+	AND( (o.zone = k.zone) OR (o.zone IS NULL AND k.zone IS NULL) )
+WHERE o.quantity &gt; 0
+ORDER by o.keyholder, o.keyname, o.zone;</sql><current_tab id="5"/></tab_sql></sqlb_project>
