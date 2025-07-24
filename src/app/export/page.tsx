@@ -6,7 +6,6 @@ import { useState } from 'react';
 
 export default function ExportPage() {
 
-  const [loading, setLoading] = useState(false);
 
   async function exportAllPagesExcel() {
     const token = localStorage.getItem('token');
@@ -46,19 +45,23 @@ export default function ExportPage() {
 
       XLSX.writeFile(wb, 'all_data_export.xlsx');
 
-    } catch (error: any) {
-      alert('Export failed: ' + error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert('Export failed: ' + error.message);
+      } else {
+        alert('Export failed: Unknown error');
+      }
     }
   }
 
-return (
+  return (
     <main className="max-w-md mx-auto p-6 mt-12 bg-white rounded-lg shadow-md text-center">
       <h1 className="text-3xl font-bold mb-4">Export All Data</h1>
       <p className="mb-6 text-gray-600">
         Click the button below to export all keys, users, assignments, and overall data into an Excel file.
       </p>
-      <Button onClick={exportAllPagesExcel} disabled={loading} size="lg">
-        {loading ? 'Exporting...' : 'Export All Data as Excel'}
+      <Button onClick={exportAllPagesExcel} size="lg">
+        Export All Data as Excel
       </Button>
     </main>
   )
