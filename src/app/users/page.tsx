@@ -207,7 +207,7 @@ export default function Users() {
                                     <label className='block mb-1 capitalize'>{field}</label>
                                     <input
                                         name={field}
-                                        value={(formData as any)[field] || ''}
+                                        value={formData [field] || ''}
                                         onChange={onFormChange}
                                         className='w-full p-2 border border-gray-300 rounded'
                                     />
