@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, ChangeEvent } from "react"
+import { useState, useEffect, ChangeEvent, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import Select from 'react-select'
@@ -78,7 +78,7 @@ export default function Assign() {
     keyname: string;
   }
 
-  async function fecthData() {
+  const fetchData = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const [assignRes, userRes, keyRes] = await Promise.all([
@@ -99,16 +99,17 @@ export default function Assign() {
       setUsers(userData.map((u: User) => ({ value: u.id, label: u.name })))
       setKeys(keyData.map((k: Key) => ({ value: k.id, label: k.keyname })))
       setLoading(false)
-    } catch (error) {
+    } catch (_error) {
+      // 使用 _error 避免 ESLint 报错
       alert('Failed to fetch data, please login again')
       router.push('/login')
     }
-  }
+  }, [router])
 
   useEffect(() => {
     if (!authChecked) return;
-    fecthData();
-  }, [authChecked])
+    fetchData();
+  }, [authChecked, fetchData])
 
   function onFormChange(field: keyof typeof formData, value: number | null) {
     setFormData(prev => ({
@@ -134,7 +135,7 @@ export default function Assign() {
       const createAssign = await res.json();
       alert('Created new key with ID: ' + createAssign.id);
 
-      fecthData();
+      fetchData();
       setShowForm(false);
       setFormData({ user_id: 0, key_id: 0, quantity: 1 })
     } catch (err: unknown) {
@@ -154,7 +155,7 @@ export default function Assign() {
         body: JSON.stringify(updatedData),
       })
       if (res.ok) {
-        fecthData();
+        fetchData();
         setShowForm(false);
         setEditingId(null);
         setFormData({ user_id: null, key_id: null, quantity: 1 })
@@ -163,9 +164,9 @@ export default function Assign() {
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
-        alert('Export failed: ' + err.message);
+        alert('Update failed: ' + err.message);
       } else {
-        alert('Export failed: Unknown error');
+        alert('Update failed: Unknown error');
       }
     }
   }
@@ -174,7 +175,7 @@ export default function Assign() {
     if (!confirm('Are you sure you want to delete this ?')) return;
     const res = await fetch(`/api/assign/${id}`, { method: 'DELETE' });
     if (res.ok) {
-      fecthData();
+      fetchData();
     } else {
       alert("Delete Failed")
     }
@@ -290,7 +291,7 @@ export default function Assign() {
         </Dialog.Portal>
       </Dialog.Root>
 
-      <table className="min-w-full borader border-gray-300">
+      <table className="min-w-full border border-gray-300">
         <thead>
           <tr className="bg-gray-100">
             <th className="border px-3 py-2 text-left">ID</th>
@@ -329,5 +330,4 @@ export default function Assign() {
       </table>
     </main>
   )
-
 }
