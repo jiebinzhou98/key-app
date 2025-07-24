@@ -99,8 +99,7 @@ export default function Assign() {
       setUsers(userData.map((u: User) => ({ value: u.id, label: u.name })))
       setKeys(keyData.map((k: Key) => ({ value: k.id, label: k.keyname })))
       setLoading(false)
-    } catch (_error) {
-      // 使用 _error 避免 ESLint 报错
+    } catch {
       alert('Failed to fetch data, please login again')
       router.push('/login')
     }

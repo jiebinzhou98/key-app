@@ -153,7 +153,7 @@ export async function PUT(
         }
       );
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 }

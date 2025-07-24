@@ -148,7 +148,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         }
       );
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 }
