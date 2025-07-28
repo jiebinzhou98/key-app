@@ -3,7 +3,6 @@ import db from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  return new Promise((resolve) => {
     const sql = `
       SELECT
         k.id,
@@ -23,12 +22,16 @@ export async function GET() {
       LEFT JOIN users u ON ak.user_id = u.id
       ORDER BY k.id, u.name
     `;
-    db.all(sql, [], (err, rows) => {
-      if (err) {
-        resolve(NextResponse.json({ error: err.message }, { status: 500 }));
-        return;
-      }
-      resolve(NextResponse.json(rows));
+  try {
+    const rows = await new Promise<any[]>((resolve, reject) => {
+      db.all(sql, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
     });
-  });
+
+    return NextResponse.json(rows);
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
