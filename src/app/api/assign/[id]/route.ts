@@ -35,10 +35,11 @@ async function ensureSpareStockExists(key_id: number): Promise<void> {
 
 
 export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: Request
 ) {
-  const id = Number(params.id);
+  const url = new URL(request.url);
+  const idStr = url.pathname.split("/").pop();
+  const id = Number(idStr);
   if (isNaN(id)) {
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
@@ -158,8 +159,11 @@ export async function PUT(
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  const id = Number(params.id);
+export async function DELETE(request: Request) {
+  const deleteUrl = new URL(request.url);
+  const pathnameDelete = deleteUrl.pathname;
+  const idStrDelete = pathnameDelete.split("/").pop();
+  const id = Number(idStrDelete);
   if (isNaN(id)) {
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
