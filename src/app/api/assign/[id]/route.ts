@@ -34,9 +34,7 @@ async function ensureSpareStockExists(key_id: number): Promise<void> {
 }
 
 
-export async function PUT(
-  request: Request
-) {
+export async function PUT(request: Request): Promise<NextResponse> {
   const url = new URL(request.url);
   const idStr = url.pathname.split("/").pop();
   const id = Number(idStr);
@@ -159,7 +157,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: Request): Promise<NextResponse> {
   const deleteUrl = new URL(request.url);
   const pathnameDelete = deleteUrl.pathname;
   const idStrDelete = pathnameDelete.split("/").pop();
